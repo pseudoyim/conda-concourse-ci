@@ -99,6 +99,19 @@ class PipelineConfig:
             },
         )
 
+    def add_rsync_get_specs(self, config_vars):
+        self.add_resource(
+            name='rsync-get-specs',
+            type_='rsync-resource',
+            source={
+                'server': config_vars['intermediate-server'],
+                'base_dir': os.path.join(config_vars['intermediate-base-folder'], 'get-specs-output'),
+                'user': config_vars['intermediate-user'],
+                'private_key': config_vars['intermediate-private-key-job'],
+                'disable_version_path': True,
+            },
+        )
+
     def add_rsync_build_pack(self, config_vars):
         self.add_resource(
             name='rsync-build-pack',
@@ -323,6 +336,19 @@ class JobConfig:
             'get_params': {'skip_download': True}
         })
 
+    def add_rsync_get_specs(self):
+        self.plan.append({
+            'put': 'rsync-get-specs',
+            'params': {
+                'sync_dir': 'get-specs-output',
+                'rsync_opts': [
+                    "--archive",
+                    "--no-perms",
+                    "--omit-dir-times",
+                    "--verbose"]},
+            'get_params': {'skip_download': True}
+        })
+
     def add_rsync_build_pack_win(self):
         self.plan.append({
             'get': 'rsync-build-pack',
@@ -460,8 +486,14 @@ class BuildStepConfig:
         self.config["outputs"] = [
             {'name': 'output-artifacts'},
             {'name': 'output-source'},
-            {'name': 'stats'}
+            {'name': 'stats'},
+            {'name': 'get-specs-output'}
         ]
+
+    def set_config_params(self, nodestring):
+        self.config["params"] = {
+            'NODESTRING': f'{nodestring}'
+        }
 
     def set_config_platform(self, arch):
         subdir = f"{self.platform}-{arch}"

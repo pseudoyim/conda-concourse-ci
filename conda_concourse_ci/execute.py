@@ -207,6 +207,7 @@ def get_build_task(
     if automated_pipeline:
         stepconfig.config['inputs'].append({'name': pull_recipes_resource})
     stepconfig.set_config_outputs()
+    stepconfig.set_config_params(node)
     stepconfig.set_config_init_run()
 
     # build up the arguments to pass to conda build
@@ -289,6 +290,7 @@ def graph_to_plan_with_jobs(
     plconfig.add_rsync_recipes(config_vars, recipe_folder)
     plconfig.add_rsync_source(config_vars)
     plconfig.add_rsync_stats(config_vars)
+    plconfig.add_rsync_get_specs(config_vars)
 
     if any(graph.nodes[node]['worker']['platform'] in ["win", "osx"] for node in order):
         plconfig.add_rsync_build_pack(config_vars)
@@ -342,6 +344,7 @@ def graph_to_plan_with_jobs(
         if rsync_artifacts:
             jobconfig.add_rsync_source()
             jobconfig.add_rsync_stats()
+            jobconfig.add_rsync_get_specs()
         plconfig.add_job(**jobconfig.to_dict())
 
     if config_vars.get('anaconda-upload-token') or config_vars.get('repo-username'):
